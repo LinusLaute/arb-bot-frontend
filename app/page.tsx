@@ -11,7 +11,7 @@ const HERO_CONFIG = {
   subtitle: "Invest in alternative markets, primarily CS:GO items, with Luti Capital's innovative investment strategies.",
   ctaButton: {
     text: "Explore Our Funds",
-    href: "#"
+    href: "#/funds"
   }
 };
 
