@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, DollarSign, Activity, ShoppingCart, Target, Crown, Eye, Download, Minus, RefreshCw } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Activity, ShoppingCart, Target, Crown, Eye, Download, Minus, RefreshCw, ChevronDown, Menu, X } from 'lucide-react';
+import { NAVIGATION_CONFIG } from '../lib/constants';
+import Link from 'next/link';
 
 export default function Dashboard() {
   const [profitPeriod, setProfitPeriod] = useState('day');
@@ -9,6 +11,7 @@ export default function Dashboard() {
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -50,7 +53,7 @@ export default function Dashboard() {
   };
 
   const getProfitData = () => {
-    switch(profitPeriod) {
+    switch (profitPeriod) {
       case 'day': return { value: kpiData.dayProfit, trend: 12.4, label: 'Day Profit' };
       case 'week': return { value: kpiData.weekProfit, trend: 8.7, label: 'Week Profit' };
       case 'month': return { value: kpiData.monthProfit, trend: 15.2, label: 'Month Profit' };
@@ -76,7 +79,7 @@ export default function Dashboard() {
     { name: "Buff163", volume: "€1,892", trades: 33, status: "Limited" }
   ];
 
-  const KPICard = ({ title, value, icon: Icon, trend, suffix = "€" }) => (
+  const KPICard = ({ title, value, icon: Icon, trend, suffix = "€" }: any) => (
     <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 hover:border-purple-500 transition-all duration-300">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-3">
@@ -93,7 +96,7 @@ export default function Dashboard() {
         )}
       </div>
       <div className="text-2xl font-bold text-white">
-        {suffix === "€" ? `€${value.toLocaleString('en-US', {minimumFractionDigits: 2})}` : `${value.toLocaleString()}${suffix}`}
+        {suffix === "€" ? `€${value.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : `${value.toLocaleString()}${suffix}`}
       </div>
     </div>
   );
@@ -104,7 +107,7 @@ export default function Dashboard() {
       <div className="border-b border-gray-800 bg-gray-900/90 backdrop-blur-sm sticky top-0 z-50">
         <div className="px-8 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-8">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
                   <Crown className="w-6 h-6 text-white" />
@@ -116,16 +119,51 @@ export default function Dashboard() {
                   <span className="text-sm text-gray-400">v2.3.1</span>
                 </div>
               </div>
+
+              {/* Desktop Navigation */}
+              <nav className="hidden xl:flex items-center space-x-6">
+                {NAVIGATION_CONFIG.menuItems.map((item, index) => (
+                  <div key={index} className="relative">
+                    {item.dropdown ? (
+                      <div className="group relative">
+                        <button className={`flex items-center gap-1 transition-colors ${item.active ? 'text-white' : 'text-gray-300 hover:text-purple-400'}`}>
+                          {item.label}
+                          <ChevronDown className="w-4 h-4" />
+                        </button>
+                        <div className="absolute top-full left-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-lg py-2 hidden group-hover:block">
+                          {item.dropdown.map((subItem, subIndex) => (
+                            <Link
+                              key={subIndex}
+                              href={subItem.href}
+                              className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700"
+                            >
+                              {subItem.label}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        className={`transition-colors ${item.active ? 'text-white' : 'text-gray-300 hover:text-purple-400'}`}
+                      >
+                        {item.label}
+                      </Link>
+                    )}
+                  </div>
+                ))}
+              </nav>
             </div>
+
             <div className="flex items-center gap-4 md:gap-6">
-              <div className="text-right">
+              <div className="hidden md:block text-right">
                 <div className="text-sm text-gray-400">System Status</div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                   <span className="text-green-400 font-medium">Active</span>
                 </div>
               </div>
-              <div className="text-right mr-2">
+              <div className="hidden md:block text-right mr-2">
                 <div className="text-sm text-gray-400">Last Update</div>
                 <div className="flex items-center gap-2">
                   <span className="text-white text-sm">{getTimeSinceUpdate()}</span>
@@ -138,9 +176,52 @@ export default function Dashboard() {
                   </button>
                 </div>
               </div>
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="xl:hidden p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800"
+              >
+                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <div className="xl:hidden border-t border-gray-800 bg-gray-900">
+            <div className="px-4 py-2 space-y-1">
+              {NAVIGATION_CONFIG.menuItems.map((item, index) => (
+                <div key={index}>
+                  {item.dropdown ? (
+                    <div className="px-3 py-2">
+                      <div className="text-gray-300 font-medium mb-2">{item.label}</div>
+                      <div className="pl-4 space-y-1">
+                        {item.dropdown.map((subItem, subIndex) => (
+                          <Link
+                            key={subIndex}
+                            href={subItem.href}
+                            className="block py-1 text-sm text-gray-400 hover:text-white"
+                          >
+                            {subItem.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      className="block px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800"
+                    >
+                      {item.label}
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="px-8 py-6 space-y-8">
@@ -161,25 +242,24 @@ export default function Dashboard() {
               </span>
             </div>
             <div className="text-2xl font-bold text-white mb-4">
-              €{getProfitData().value.toLocaleString('en-US', {minimumFractionDigits: 2})}
+              €{getProfitData().value.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </div>
             <div className="flex bg-gray-700 rounded-lg p-1">
               {['day', 'week', 'month'].map((period) => (
                 <button
                   key={period}
                   onClick={() => setProfitPeriod(period)}
-                  className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all duration-200 ${
-                    profitPeriod === period
+                  className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all duration-200 ${profitPeriod === period
                       ? 'bg-purple-600 text-white shadow-lg'
                       : 'text-gray-400 hover:text-white hover:bg-gray-600'
-                  }`}
+                    }`}
                 >
                   {period.charAt(0).toUpperCase() + period.slice(1)}
                 </button>
               ))}
             </div>
           </div>
-          
+
           <KPICard title="Volume" value={kpiData.volume} icon={Activity} />
           <KPICard title="Trade Count" value={kpiData.tradeCount} icon={ShoppingCart} suffix="" />
           <KPICard title="Avg. Return" value={kpiData.avgReturn} icon={TrendingUp} suffix="%" />
@@ -196,7 +276,7 @@ export default function Dashboard() {
               <DollarSign className="w-6 h-6" />
               <span className="font-medium text-sm">Free Cash</span>
             </div>
-            <div className="text-2xl font-bold">€{kpiData.freeCash.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+            <div className="text-2xl font-bold">€{kpiData.freeCash.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
             <div className="text-sm opacity-90 mt-1">Withdrawable</div>
           </div>
         </div>
@@ -247,9 +327,8 @@ export default function Dashboard() {
                         <div className="font-medium text-white">{marketplace.name}</div>
                         <div className="text-2xl font-bold text-white mt-2">{marketplace.volume}</div>
                         <div className="text-sm text-gray-400">{marketplace.trades} trades</div>
-                        <div className={`text-xs px-2 py-1 rounded mt-2 inline-block ${
-                          marketplace.status === 'Active' ? 'bg-green-600 text-green-100' : 'bg-yellow-600 text-yellow-100'
-                        }`}>
+                        <div className={`text-xs px-2 py-1 rounded mt-2 inline-block ${marketplace.status === 'Active' ? 'bg-green-600 text-green-100' : 'bg-yellow-600 text-yellow-100'
+                          }`}>
                           {marketplace.status}
                         </div>
                       </div>
@@ -258,7 +337,7 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-            
+
             {/* Future Enhancement Areas - Placeholder Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 border-dashed">
